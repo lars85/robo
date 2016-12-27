@@ -1,0 +1,19 @@
+{
+  "name": "larsmalach/robo",
+  "description": "Adds deployment tasks to robo.li",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Lars Malach",
+      "email": "Lars@Malach.de"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "LarsMalach\\Robo\\": "src"
+    }
+  },
+  "require": {
+    "php": ">=7.0.0"
+  }
+}
