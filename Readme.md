@@ -62,7 +62,7 @@ example:
   # abstract can be true or false. If abstract is true, you can not deploy it. Its just there to extend other ones.
   abstract: false
   # extend the current configuration with another ones
-  superTypes ['parent1', 'parent2']
+  superTypes: ['parent1', 'parent2']
   branch: master
   # tag has higher priority
   tag: 1.2.3
