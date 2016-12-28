@@ -13,10 +13,10 @@ class RoboFile extends \Robo\Tasks
      * @param array $opt
      * @return void
      */
-    public function deploy($instance, array $opt = ['tag|t' => null, 'branch|b' => null])
+    public function deploy($instanceKey, array $opt = ['tag|t' => null, 'branch|b' => null])
     {
         $this->stopOnFail();
-        $this->taskDeployment($instance, 'RoboServers.yaml' /* you can use yaml or json files */, $opt)
+        $this->taskDeployment($instanceKey, 'RoboServers.yaml' /* you can use yaml or json files */, $opt)
             ->gitClone()
             ->composerInstall()
             //->bowerInstall()
@@ -59,6 +59,10 @@ stage:
       user: www-data
 
 example:
+  # abstract can be true or false. If abstract is true, you can not deploy it. Its just there to extend other ones.
+  abstract: false
+  # extend the current configuration with another ones
+  superTypes ['parent1', 'parent2']
   branch: master
   # tag has higher priority
   tag: 1.2.3
@@ -76,6 +80,8 @@ example:
       host: domain.de
       user: www-data
       path: /var/www/domain.de
+      abstract: false
+      superTypes: []
     serverName2:
       host: domain2.de
       user: www-data
