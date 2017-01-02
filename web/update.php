@@ -12,7 +12,7 @@ if (file_exists('update.lock')) {
 $commands = [
     'cd ..',
     'git pull',
-    'composer install',
+    'composer update --no-dev',
     'vendor/bin/robo phar:build'
 ];
 
