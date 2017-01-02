@@ -8,7 +8,8 @@ if (empty($_GET['code']) ||
     exit();
 }
 
-if (file_exists('update.lock')) {
+$lockFile = fopen('update.lock', 'w');
+if (!flock($lockFile, LOCK_EX)) {
     exit('update.lock exists!');
 }
 
@@ -32,3 +33,6 @@ mail(
         '$_GET' => $_GET
     ], true)
 );
+
+flock($lockFile, LOCK_UN);
+@unlink('update.lock');
