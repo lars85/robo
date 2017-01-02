@@ -5,11 +5,11 @@ if (empty($_GET['code']) ||
     trim(file_get_contents('../../.updateCode.txt')) !== $_GET['code']
 ) {
     header('HTTP/1.0 404 Not Found');
-    die();
+    exit();
 }
 
 if (file_exists('update.lock')) {
-    die('update.lock exists!');
+    exit('update.lock exists!');
 }
 
 $commands = [
