@@ -16,7 +16,7 @@ $commands = [
     'cd ..',
     'git pull',
     'composer update --no-dev',
-    'vendor/bin/robo phar:build'
+    'php vendor/bin/robo phar:build'
 ];
 
 exec('(' . implode(' && ', $commands) . ') 2>&1', $output);
@@ -25,5 +25,10 @@ mail(
     'Lars@Malach.de',
     'RoboUpdate',
     implode(PHP_EOL, $output) . PHP_EOL . PHP_EOL .
-    print_r(['$_SERVER' => $_SERVER, '$_POST' => $_POST, '$_GET' => $_GET], true)
+    print_r([
+        'input' => json_decode(file_get_contents('php://input') ?: '[]', true),
+        '$_SERVER' => $_SERVER,
+        '$_POST' => $_POST,
+        '$_GET' => $_GET
+    ], true)
 );
