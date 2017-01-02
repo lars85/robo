@@ -2,8 +2,12 @@
 
 namespace LarsMalach\Robo\Model;
 
+use LarsMalach\Robo\Helper\TemplateHelper;
+
 class Deployment
 {
+    use Traits\Properties;
+
     /** @var array|Server[] */
     protected $servers = [];
 
@@ -17,13 +21,19 @@ class Deployment
     protected $name;
 
     /** @var string */
+    protected $releaseName = 'release_{{ deployment.createdAt | date("Y-m-d_H-i-s") }}_{{ deployment.revisionName }}';
+
+    /** @var string */
+    protected $localPath = '/tmp/robo/{{ deployment.projectName }}/{{ deployment.name }}';
+
+    /** @var string */
     protected $projectName;
 
     /** @var \DateTime */
     protected $createdAt;
 
     /** @var string */
-    protected $repository;
+    protected $repository = '{{ repositoryPath }}';
 
     /** @var int */
     protected $keepReleases = 5;
@@ -31,11 +41,15 @@ class Deployment
     /** @var string */
     protected $webDirectory = '';
 
-    /** @var array */
-    protected $properties = [];
+    /** @var string */
+    protected $maintenanceFlagFileName = 'maintenance.flag';
 
     const CONTEXT_PRODUCTION = 'production';
     const CONTEXT_DEVELOPMENT = 'development';
+
+    const PATH_WEB = 'webPath';
+    const PATH_RELEASE = 'releasePath';
+    const PATH_ROOT = 'rootPath';
 
     /** @var string */
     protected $context = self::CONTEXT_PRODUCTION;
@@ -47,18 +61,18 @@ class Deployment
 
     public function getReleaseName(): string
     {
-        return $this->createdAt->format('Y-m-d_H-i-s') . '_' . $this->getRevisionName();
+        return TemplateHelper::renderString($this->releaseName, ['deployment' => $this]);
     }
 
-    public function getLocalTemporaryPath(): string
+    public function setReleaseName(string $releaseName): self
     {
-        return '/tmp/robo/' . $this->getProjectName(). '/' . $this->getName() . '/' . $this->getReleaseName();
+        $this->releaseName = $releaseName;
+        return $this;
     }
-
 
     public function getName(): string
     {
-        return $this->name;
+        return TemplateHelper::renderString($this->name, ['deployment' => $this]);
     }
 
     public function setName(string $name): self
@@ -69,13 +83,14 @@ class Deployment
 
     public function getProjectName(): string
     {
-        $projectName = $this->projectName;
-        if (empty($projectName)) {
-            $projectName = parse_url($this->getRepository(), PHP_URL_PATH);
-            $projectName = strtok($projectName, '.');
-            $projectName = str_replace('/', '_', $projectName);
-        }
-        return $projectName;
+        $repositoryPath = parse_url($this->getRepository(), PHP_URL_PATH);
+        $repositoryPath = strtok($repositoryPath, '.');
+        $repositoryPath = str_replace('/', '_', $repositoryPath);
+
+        return TemplateHelper::renderString(
+            $this->projectName,
+            ['deployment' => $this, 'repositoryPath' => $repositoryPath]
+        );
     }
 
     public function setProjectName(string $projectName): self
@@ -94,14 +109,11 @@ class Deployment
 
     public function setServers(array $servers): self
     {
-        $this->servers = [];
-        foreach ($servers as $server) {
-            $this->setServer($server);
-        }
+        $this->servers = $servers;
         return $this;
     }
 
-    public function setServer(Server $server): self
+    public function addServer(Server $server): self
     {
         $this->servers[] = $server;
         return $this;
@@ -109,9 +121,8 @@ class Deployment
 
     public function getTag(): string
     {
-        return $this->tag;
+        return TemplateHelper::renderString($this->tag, ['deployment' => $this]);
     }
-
 
     public function setTag(string $tag): self
     {
@@ -121,7 +132,7 @@ class Deployment
 
     public function getBranch(): string
     {
-        return $this->branch;
+        return TemplateHelper::renderString($this->branch, ['deployment' => $this]);
     }
 
     public function setBranch(string $branch): self
@@ -144,7 +155,7 @@ class Deployment
      */
     public function getContext(): string
     {
-        return $this->context;
+        return TemplateHelper::renderString($this->context, ['deployment' => $this]);
     }
 
     /**
@@ -157,9 +168,14 @@ class Deployment
         return $this;
     }
 
+    public function getCreatedAt(): \DateTime
+    {
+        return $this->createdAt;
+    }
+
     public function getRepository(): string
     {
-        return $this->repository;
+        return TemplateHelper::renderString($this->repository, ['deployment' => $this]);
     }
 
     public function setRepository(string $repository): self
@@ -184,7 +200,7 @@ class Deployment
      */
     public function getWebDirectory(): string
     {
-        return trim($this->webDirectory, '/');
+        return trim(TemplateHelper::renderString($this->webDirectory, ['deployment' => $this]), '/');
     }
 
     /**
@@ -196,13 +212,45 @@ class Deployment
         return $this;
     }
 
-    public function getProperty(string $key)
+    public function getLocalPath(string $type = 'localRootPath'): string
     {
-        return isset($this->properties[$key]) ? $this->properties[$key] : null;
+        switch ($type) {
+            case self::PATH_WEB:
+                $path = $this->getWebPath();
+                break;
+            case self::PATH_RELEASE:
+                $path = $this->getReleasePath();
+                break;
+            case self::PATH_ROOT:
+            default:
+                $path = rtrim(TemplateHelper::renderString($this->localPath, ['deployment' => $this]), '/');
+        }
+        return $path;
     }
 
-    public function setProperty(string $key, $value)
+    public function setLocalPath(string $localPath): self
     {
-        $this->properties[$key] = $value;
+        $this->localPath = $localPath;
+        return $this;
+    }
+
+    public function getReleasePath(): string
+    {
+        return rtrim($this->getLocalPath() . '/' . $this->getReleaseName(), '/');
+    }
+
+    public function getWebPath(): string
+    {
+        return rtrim($this->getReleasePath() . '/' . $this->getWebDirectory(), '/');
+    }
+
+    public function getMaintenanceFlagFileName(): string
+    {
+        return TemplateHelper::renderString($this->maintenanceFlagFileName, ['deployment' => $this]);
+    }
+
+    public function setMaintenanceFlagFileName(string $maintenanceFlagFileName)
+    {
+        $this->maintenanceFlagFileName = $maintenanceFlagFileName;
     }
 }

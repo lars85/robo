@@ -16,14 +16,16 @@ class RoboFile extends \Robo\Tasks
     public function deploy($instanceKey, array $opt = ['tag|t' => null, 'branch|b' => null])
     {
         $this->stopOnFail();
-        $this->taskDeployment($instanceKey, 'RoboServers.yaml' /* you can use yaml or json files */, $opt)
-            ->gitClone()
-            ->composerInstall()
-            //->bowerInstall()
-            //->deployFiles()
-            //->removeLocalTemporaryDirectory()
-            ->release()
-            ->removeOldReleases();
+        $this->deplInit($instanceKey, 'RoboServers.yaml' /* you can use yaml or json files */, $opt);
+        $this->collectionBuilder()
+            ->addTask($this->deplGitClone())
+            ->addTask($this->deplComposerInstall())
+            ->addTask($this->deplBowerInstall())
+            ->addTask($this->deplDeployFiles())
+            ->addTask($this->deplRemoveLocalTemporaryDirectory())
+            ->addTask($this->deplRelease())
+            ->addTask($this->deplRemoveOldReleases())
+            ->run();
     }
 }
 ```
@@ -91,3 +93,10 @@ example:
 You can see all possible properties in
 src/Model/Deployment.php or
 src/Model/Server.php
+
+# Build
+
+```bash
+vendor/bin/robo phar:build
+vendor/bin/robo phar:install
+```

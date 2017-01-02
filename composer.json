@@ -14,6 +14,9 @@
     }
   },
   "require": {
-    "php": ">=7.0.0"
+    "php": ">=7.0.0",
+    "consolidation/robo": "~1.0.5",
+    "twig/twig": "~1.30.0",
+    "symfony/yaml": "~3.2.1"
   }
 }

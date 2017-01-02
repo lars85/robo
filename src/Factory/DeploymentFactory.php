@@ -3,7 +3,6 @@
 namespace LarsMalach\Robo\Factory;
 
 use LarsMalach\Robo\Model\Deployment;
-use LarsMalach\Robo\Model\Server;
 use Symfony\Component\Yaml\Yaml;
 use Robo\Exception\TaskException;
 
@@ -49,6 +48,8 @@ class DeploymentFactory
         $instances = $this->getResolvedSuperTypes($instances);
         $instance = $instances[$instanceKey];
 
+        $serverFactory = new ServerFactory();
+
         // Create deployment object
         $deployment = new Deployment();
         $deployment->setName($instanceKey);
@@ -57,17 +58,8 @@ class DeploymentFactory
                 $servers = [];
                 $serversArray = $this->getResolvedSuperTypes($value);
                 foreach ($serversArray as $serverName => $serverData) {
-                    $server = new Server();
-                    $server->setName($serverName);
-                    foreach ($serverData as $sKey => $sValue) {
-                        $setterFunctionName = 'set' . ucfirst($sKey);
-                        if (method_exists($server, $setterFunctionName)) {
-                            call_user_func([$server, $setterFunctionName], $sValue);
-                        } else {
-                            $server->setProperty($sKey, $sValue);
-                        }
-                    }
-                    $servers[] = $server;
+                    $serverData['deployment'] = $deployment;
+                    $servers[] = $serverFactory->createServer($serverName, $serverData);
                 }
                 $value = $servers;
             }

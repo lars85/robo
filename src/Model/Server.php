@@ -2,8 +2,12 @@
 
 namespace LarsMalach\Robo\Model;
 
+use LarsMalach\Robo\Helper\TemplateHelper;
+
 class Server
 {
+    use Traits\Properties;
+
     /** @var string */
     protected $name;
 
@@ -16,12 +20,12 @@ class Server
     /** @var string */
     protected $path;
 
-    /** @var array */
-    protected $properties;
+    /** @var Deployment */
+    protected $deployment;
 
     public function getName(): string
     {
-        return !empty($this->name) ? $this->name : $this->getHost();
+        return !empty($this->name) ? TemplateHelper::renderString($this->name, ['server' => $this]) : $this->getHost();
     }
 
     public function setName(string $name): self
@@ -32,7 +36,7 @@ class Server
 
     public function getHost(): string
     {
-        return $this->host;
+        return TemplateHelper::renderString($this->host, ['server' => $this]);
     }
 
     public function setHost(string $host): self
@@ -43,7 +47,7 @@ class Server
 
     public function getUser(): string
     {
-        return $this->user;
+        return TemplateHelper::renderString($this->user, ['server' => $this]);
     }
 
     public function setUser(string $user): self
@@ -52,32 +56,46 @@ class Server
         return $this;
     }
 
-    public function getPath(): string
+    public function getPath(string $type = 'rootPath'): string
     {
-        return $this->path;
+        switch ($type) {
+            case Deployment::PATH_RELEASE:
+                $path = $this->getReleasePath();
+                break;
+            case Deployment::PATH_WEB:
+                $path = $this->getWebPath();
+                break;
+            case Deployment::PATH_ROOT:
+            default:
+                $path = rtrim(TemplateHelper::renderString($this->path, ['server' => $this]), '/');
+        }
+        return $path;
     }
 
-    public function getReleasePath(Deployment $deployment): string
+    public function getReleasePath(): string
     {
-        return $this->getPath() . '/release_' . $deployment->getReleaseName() . '/';
+        return rtrim($this->getPath() . '/' . $this->getDeployment()->getReleaseName(), '/');
+    }
+
+    public function getWebPath(): string
+    {
+        return rtrim($this->getReleasePath() . '/' . $this->getDeployment()->getWebDirectory(), '/');
     }
 
     public function setPath(string $path): self
     {
-        if ($path !== '/') {
-            $path = rtrim($path, '/');
-        }
         $this->path = $path;
         return $this;
     }
 
-    public function getProperty(string $key)
+    public function getDeployment(): Deployment
     {
-        return $this->properties[$key];
+        return $this->deployment;
     }
 
-    public function setProperty(string $key, $value)
+    public function setDeployment(Deployment $deployment): self
     {
-        $this->properties[$key] = $value;
+        $this->deployment = $deployment;
+        return $this;
     }
 }
