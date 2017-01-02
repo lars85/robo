@@ -19,11 +19,11 @@ $commands = [
     'vendor/bin/robo phar:build'
 ];
 
-exec(implode(' && ', $commands), $output);
+exec('(' . implode(' && ', $commands) . ') 2>&1', $output);
 
 mail(
     'Lars@Malach.de',
     'RoboUpdate',
     implode(PHP_EOL, $output) . PHP_EOL . PHP_EOL .
-    print_r(['$_POST' => $_POST, '$_SERVER' => $_SERVER], true)
+    print_r(['$_SERVER' => $_SERVER, '$_POST' => $_POST, '$_GET' => $_GET], true)
 );
