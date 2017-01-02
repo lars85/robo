@@ -13,14 +13,7 @@ if (!flock($lockFile, LOCK_EX)) {
     exit('update.lock exists!');
 }
 
-$commands = [
-    'cd ..',
-    'git pull',
-    'composer update --no-dev',
-    'php vendor/bin/robo phar:build'
-];
-
-exec('(' . implode(' && ', $commands) . ') 2>&1', $output);
+exec('cd .. && ./update.sh 2>&1', $output);
 
 mail(
     'Lars@Malach.de',

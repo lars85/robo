@@ -1,15 +1,21 @@
-Example for RoboFile.php:
+# Installation
+
+```bash
+curl -s http://robo.l85.eu/robo.phar -o /usr/local/bin/robo
+chmod +x /usr/local/bin/robo
+```
+
+# Example for RoboFile.php
+
 ```php
 <?php
-
-require_once 'Vendor/autoload.php';
 
 class RoboFile extends \Robo\Tasks
 {
     use \LarsMalach\Robo\Task\Deployment\loadTasks;
 
     /**
-     * @param string $instance
+     * @param string $instanceKey
      * @param array $opt
      * @return void
      */
@@ -23,7 +29,9 @@ class RoboFile extends \Robo\Tasks
             ->addTask($this->deplBowerInstall())
             ->addTask($this->deplDeployFiles())
             ->addTask($this->deplRemoveLocalTemporaryDirectory())
+            ->addTask($this->deplCreateMaintenanceFlag())
             ->addTask($this->deplRelease())
+            ->addTask($this->deplRemoveMaintenanceFlag())
             ->addTask($this->deplRemoveOldReleases())
             ->run();
     }
