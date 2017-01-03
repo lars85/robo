@@ -17,6 +17,7 @@ class RoboFile extends \Robo\Tasks
             ->addTask($this->deplRemoveLocalTemporaryDirectory())
             ->addTask($this->deplCreateMaintenanceFlag())
             ->addTask($this->deplRelease())
+            ->addTask($this->deplMagentoCacheClear())
             ->addTask($this->deplRemoveMaintenanceFlag())
             ->addTask($this->deplRemoveOldReleases())
             ->run();

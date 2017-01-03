@@ -11,8 +11,15 @@ class GitClone extends BaseTask
     {
         $gitTask = (new Exec('git clone'))
             ->option('branch', $this->getDeployment()->getRevisionName())
-            ->option('single-branch')
-            ->option('depth', 1)
+            ->option('recursive');
+
+        if (empty($this->getDeployment()->getProperty('gitClone.history'))) {
+            $gitTask
+                ->option('single-branch')
+                ->option('depth', 1);
+        }
+
+        $gitTask
             ->arg($this->getDeployment()->getRepository())
             ->arg($this->getDeployment()->getReleaseName());
 

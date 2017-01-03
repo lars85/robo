@@ -3,6 +3,8 @@
 namespace LarsMalach\Robo\Task\Deployment;
 
 use LarsMalach\Robo\Model\Deployment;
+use LarsMalach\Robo\Model\Server;
+use Robo\Collection\Collection;
 use Robo\Contract\CommandInterface;
 use Robo\Result;
 use Robo\Task\Remote\Ssh;
@@ -35,30 +37,48 @@ abstract class BaseTask extends \Robo\Task\BaseTask
         return $this->execLocal;
     }
 
-    protected function runTask(CommandInterface $task, string $pathType = Deployment::PATH_RELEASE) {
-        $this->printTaskInfo($task->getCommand());
+    protected function runTask(CommandInterface $task, string $pathType = Deployment::PATH_RELEASE): Result
+    {
         if ($this->isExecLocal()) {
-            return $this->execLocal($task, $pathType);
+            return $this->runTaskLocal($task, $pathType);
         } else {
-            return $this->execRemote($task, $pathType);
+            return $this->runTaskOnServers($task, $pathType);
         }
     }
 
-    protected function execLocal(CommandInterface $task, string $pathType = Deployment::PATH_RELEASE)
+    protected function runTaskLocal(CommandInterface $task, string $pathType = Deployment::PATH_RELEASE): Result
     {
+        $this->printTaskInfo('Run local:');
+        $this->printTaskInfo($task->getCommand());
         return $task
             ->dir($this->getDeployment()->getLocalPath($pathType))
             ->run();
     }
 
-    protected function execRemote(CommandInterface $task, string $pathType = Deployment::PATH_RELEASE)
+    protected function runTaskOnServers(CommandInterface $task, string $pathType = Deployment::PATH_RELEASE): Result
     {
+        $this->printTaskInfo('Run on servers:');
+        $this->printTaskInfo($task->getCommand());
+        $collection = new Collection();
         foreach ($this->getDeployment()->getServers() as $server) {
-            (new Ssh($server->getHost(), $server->getUser()))
+            $sshTask = (new Ssh($server->getHost(), $server->getUser()))
                 ->remoteDir($server->getPath($pathType))
-                ->exec($task)
-                ->run();
+                ->exec($task);
+            $collection->add($sshTask);
         }
-        return Result::success($this);
+        return $collection->run();
+    }
+
+    protected function runTaskOnServer(
+        Server $server,
+        CommandInterface $task,
+        string $pathType = Deployment::PATH_RELEASE
+    ): Result {
+        $this->printTaskInfo('Run on server "' . $server->getName() . '":');
+        $this->printTaskInfo($task->getCommand());
+        return (new Ssh($server->getHost(), $server->getUser()))
+            ->remoteDir($server->getPath($pathType))
+            ->exec($task)
+            ->run();
     }
 }

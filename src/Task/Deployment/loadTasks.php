@@ -74,6 +74,14 @@ trait loadTasks
     }
 
     /**
+     * @return MagentoCacheClear
+     */
+    protected function deplMagentoCacheClear()
+    {
+        return $this->task(MagentoCacheClear::class, $this->deplGet());
+    }
+
+    /**
      * @return RemoveMaintenanceFlag
      */
     protected function deplRemoveMaintenanceFlag()
