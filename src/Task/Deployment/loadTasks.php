@@ -4,6 +4,7 @@ namespace LarsMalach\Robo\Task\Deployment;
 
 use LarsMalach\Robo\Factory\DeploymentFactory;
 use LarsMalach\Robo\Model\Deployment;
+use Robo\Contract\CommandInterface;
 
 trait loadTasks
 {
@@ -23,6 +24,15 @@ trait loadTasks
     protected function deplGet()
     {
         return $this->deployment;
+    }
+
+    /**
+     * @param CommandInterface $task
+     * @return ExecOnServers
+     */
+    public function deplExecOnServers(CommandInterface $task)
+    {
+        return $this->task(ExecOnServers::class, $this->deplGet(), $task);
     }
 
     /**
@@ -47,6 +57,14 @@ trait loadTasks
     protected function deplDeployFiles()
     {
         return $this->task(DeployFiles::class, $this->deplGet());
+    }
+
+    /**
+     * @return NpmInstall
+     */
+    protected function deplNpmInstall()
+    {
+        return $this->task(NpmInstall::class, $this->deplGet());
     }
 
     /**

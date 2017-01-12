@@ -24,13 +24,16 @@ class RoboFile extends \Robo\Tasks
         $this->stopOnFail();
         $this->deplInit($instanceKey, 'RoboServers.yaml' /* you can use yaml or json files */, $opt);
         $this->collectionBuilder()
+            ->addTask($this->deplExecOnServers(new \Robo\Task\Base\Exec('echo "test"')))
             ->addTask($this->deplGitClone())
             ->addTask($this->deplComposerInstall())
+            ->addTask($this->deplNpmInstall())
             ->addTask($this->deplBowerInstall())
             ->addTask($this->deplDeployFiles())
             ->addTask($this->deplRemoveLocalTemporaryDirectory())
             ->addTask($this->deplCreateMaintenanceFlag())
             ->addTask($this->deplRelease())
+            ->addTask($this->deplMagentoCacheClear())
             ->addTask($this->deplRemoveMaintenanceFlag())
             ->addTask($this->deplRemoveOldReleases())
             ->run();
@@ -85,6 +88,10 @@ example:
   keepReleases: 5
   # webDirectory is by default empty ''. You can use it if the web directory is sub directory of the repository (of example 'Web' oder 'src')
   webDirectory: Web
+  # change bower directory. by default in the release directory
+  bower.dir: skin/frontend/enterprise/default
+  # change npm directory. by default in the release directory
+  npm.dir: skin/frontend/enterprise/default
   servers:
     serverName1:
       host: domain.de

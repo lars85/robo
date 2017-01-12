@@ -48,7 +48,7 @@ class MagentoCacheClear extends BaseTask
         }
         $cacheItems = json_decode($result->getOutputData(), true);
 
-        // get exludes
+        // get excludes
         $excludes = $server->getDeployment()->getProperty('magentoCacheClear.cacheExcludes') ?: [];
         if (!empty($server)) {
             $excludes = array_merge($excludes, $server->getProperty('magentoCacheClear.cacheExcludes') ?: []);

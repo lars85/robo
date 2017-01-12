@@ -4,10 +4,8 @@ namespace LarsMalach\Robo\Task\Deployment;
 
 use LarsMalach\Robo\Model\Deployment;
 use LarsMalach\Robo\Model\Server;
-use Robo\Collection\Collection;
 use Robo\Contract\CommandInterface;
 use Robo\Result;
-use Robo\Task\Remote\Ssh;
 
 abstract class BaseTask extends \Robo\Task\BaseTask
 {
@@ -57,16 +55,9 @@ abstract class BaseTask extends \Robo\Task\BaseTask
 
     protected function runTaskOnServers(CommandInterface $task, string $pathType = Deployment::PATH_RELEASE): Result
     {
-        $this->printTaskInfo('Run on servers:');
-        $this->printTaskInfo($task->getCommand());
-        $collection = new Collection();
-        foreach ($this->getDeployment()->getServers() as $server) {
-            $sshTask = (new Ssh($server->getHost(), $server->getUser()))
-                ->remoteDir($server->getPath($pathType))
-                ->exec($task);
-            $collection->add($sshTask);
-        }
-        return $collection->run();
+        return (new ExecOnServers($this->getDeployment(), $task))
+            ->setPathType($pathType)
+            ->run();
     }
 
     protected function runTaskOnServer(
@@ -74,11 +65,9 @@ abstract class BaseTask extends \Robo\Task\BaseTask
         CommandInterface $task,
         string $pathType = Deployment::PATH_RELEASE
     ): Result {
-        $this->printTaskInfo('Run on server "' . $server->getName() . '":');
-        $this->printTaskInfo($task->getCommand());
-        return (new Ssh($server->getHost(), $server->getUser()))
-            ->remoteDir($server->getPath($pathType))
-            ->exec($task)
+        return (new ExecOnServers($this->getDeployment(), $task))
+            ->setPathType($pathType)
+            ->setServers([$server])
             ->run();
     }
 }
